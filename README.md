@@ -5,10 +5,13 @@ This ScriptPro 2.0 source code
 About this materials...
 -----------------------
 This is the source code for the application posted here:
+
 http://usa.autodesk.com/adsk/servlet/item?siteID=123112&id=4091678&linkID=9240618
 
 * Blog articles
+
   http://adndevblog.typepad.com/autocad/2012/04/batch-purging-of-drawing-files-using-scriptpro-20.html
+  
   http://adndevblog.typepad.com/autocad/2012/04/batch-recover-using-scriptpro-20.html
 
 * Disclaimer: We are aware that materials is not free of errors. 
