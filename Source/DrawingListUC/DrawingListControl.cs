@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Text;
 
 namespace DrawingListUC
 {
@@ -19,72 +20,56 @@ namespace DrawingListUC
     }
 
     // Holds the host application - WPF application
-
     private Object _hostApplication = null;
 
     // Active AutCAD object
-
     Object acadObject = null;
 
     // AutoCAD object id
-
     string _acadObjectId = "";
 
     // Timeout for each drawing
     int _timeoutSec = 10;
 
     // Start up script path
-
     string _startUpScript = "";
 
     // Log file path
-
     string _logFilePath = "";
 
     // Hold info about stoping the process
-
     bool _stopBatchProcess = false;
 
     //Log file class
-
     ReportLog bplog = null;
 
     // Thread which rund the batch process
-
     BackgroundWorker batchProcessThread;
 
     // Timeout thread
-
     BackgroundWorker _timeoutWk;
 
     // Timer to trigger AutoCAD restart
-
     System.Timers.Timer _timeout = null;
 
     // AutoCAD restart count
-
     int _restartDWGCount = 5;
 
     // Batch process options
-
     int _runOption = 0;
 
     // Progress bar value
-
     double pbValue = 0.0;
 
     // File count
-
     int fileCount = 0;
 
     // Version in BPL file - for future use...
     //2.0 version
     //3.0 saving runWithoutOpen
-
     const int BPLVersion = 3; 
 
     // Options
-
     const int RUN_CHECKED = 0;
     const int RUN_SELECTED = 1;
     const int RUN_FAILED = 2;
@@ -92,27 +77,21 @@ namespace DrawingListUC
     bool _checkAll = false;
 
     // Variable to flag killing of acad.
-
     static bool _killAcad = false;
 
     // To hold filedia & recover mode value
-
     Object _fd = null;
     Object _rm = null;
     Object _lf = null;
 
     // Script path to run
-
     string _scriptPath;
 
     // Current project opened
-
     string _projectName = "";
 
     // AutoCAD name in string
-
     string _acadProduct = "";
-
 
     bool searchAllDirectories = false;
 
@@ -123,28 +102,21 @@ namespace DrawingListUC
     bool diagnosticMode = false;
 
     //speed of the tool v2.1
-
     int _toolSpeed = 0;
 
-
     // Flag to save the project modification status
-
     bool _modified = false;
 
     // Temp color variable
-
     Color itemColor;
 
     // Holds the info on batch process
-
     bool _isProcessRunning = false;
 
     // Thread input class.
-
     ThreadInput Threadinput = new ThreadInput();
 
     // Const strings and ints
-
     const string dwgExt = "dwg";
     const string dxfExt = "dxf";
     const string currentDwg = "Current drawing is : ";
@@ -160,7 +132,6 @@ namespace DrawingListUC
     const int CLOSE_DWG_FAILED = 3;
 
     // AutoCAD location and size.
-
     static int _left = 0;
     static int _top = 0;
     static int _width = 0;
@@ -171,30 +142,21 @@ namespace DrawingListUC
 
    //AutoCAD exe to run before starting the application
    //using ActiveX API.
-
     string acadExePath = "";
-
     
     //to run the selected version of application
-
     bool runSelectedExe = false;
 
     //to exit the application without showing the logfile
-
-
     bool silentExit = false;
 
-    //to hold information on running script as commandline
-     //argument
-
+    //to hold information on running script as commandline argument
     bool useCmdLine = false;
 
-      //wizard mode
-
+    //wizard mode
     bool wizardMode = false;
 
     // Some properties for the host application to use
-
     public bool Modified
     {
       set { _modified = value; }
@@ -216,35 +178,28 @@ namespace DrawingListUC
     #region UserInterface Members
 
     // Resize the controls
-
     private void DwgList_SizeChanged(object sender, EventArgs e)
     {
       // Control resize, set the col widths...
-
       int width = DwgList.Width;
 
       if (wizardMode)
       {
           // DWG name
-
           //DwgList.Columns[0].Width = (int)(width * 0.23);
 
           //// Path
-
           //DwgList.Columns[1].Width = (int)(width * 0.73);
       }
       else
       {
           // DWG name
-
           DwgList.Columns[0].Width = (int)(width * 0.25);
 
           // Path
-
           DwgList.Columns[1].Width = (int)(width * 0.6);
 
           // Status
-
           DwgList.Columns[2].Width = (int)(width * 0.15);
       }
     }
@@ -252,14 +207,12 @@ namespace DrawingListUC
     public void DoInitialize()
     {
       // Make the process bar hidden by default
-
       BPbar.Visible = false;
       label_filename.Visible = false;
 
       ApplySettings();
 
       // Check the command line
-
       bool fileFound = false;
       bool startProcess = false;
       silentExit = false;
@@ -397,11 +350,9 @@ namespace DrawingListUC
     {
       OpenFileDialog BPFileOpenDlg =
         new OpenFileDialog();
-      BPFileOpenDlg.Filter =
-        "Drawing Files (*.dwg, *.dxf)|*.dwg;*.dxf";
+      BPFileOpenDlg.Filter ="Drawing Files (*.dwg, *.dxf)|*.dwg;*.dxf";
       BPFileOpenDlg.Multiselect = true;
-      BPFileOpenDlg.Title =
-        "Select files to add";
+      BPFileOpenDlg.Title ="Select files to add";
 
       if (BPFileOpenDlg.ShowDialog() == DialogResult.OK)
       {
@@ -467,7 +418,6 @@ namespace DrawingListUC
     }
 
     // Enable/disable the context menu items
-
     private void DwgContextMenu_Opening(
       object sender, CancelEventArgs e
     )
@@ -565,7 +515,6 @@ namespace DrawingListUC
     }
 
     // Select the script
-
     private void ScriptBrowse_Click(object sender, EventArgs e)
     {
       OpenFileDialog BPFileOpenDlg = new OpenFileDialog();
@@ -579,21 +528,18 @@ namespace DrawingListUC
     }
 
     // View the script
-
     private void Viewbutton_Click(object sender, EventArgs e)
     {
       Process notePad = new Process();
       notePad.StartInfo.FileName = "notepad.exe";
 
       // Find if the file present
-
       if (File.Exists(ScriptPath.Text))
         notePad.StartInfo.Arguments = ScriptPath.Text;
       notePad.Start();
     }
 
     // Remove the selected DWG
-
     public void RemoveSelectedDWG()
     {
       // Remove the drawings from the list control
@@ -611,14 +557,12 @@ namespace DrawingListUC
     }
 
     //
-
     private void RemoveDWG_Click(object sender, EventArgs e)
     {
       RemoveSelectedDWG();
     }
 
     // Mark the selected DWG as skip
-
     public void SkipSelectedDWG()
     {
       ListView.SelectedListViewItemCollection selItems =
@@ -627,14 +571,12 @@ namespace DrawingListUC
       foreach (ListViewItem item in selItems)
       {
         // Remove the item from listview
-
         item.Checked = !item.Checked;
       }
       _modified = true;
     }
 
     //
-
     private void DwgList_ItemChecked(
       object sender, ItemCheckedEventArgs e
     )
@@ -660,7 +602,6 @@ namespace DrawingListUC
     }
 
     // Context menu options
-
     private void saveDWGListToolStripMenuItem_Click(
       object sender, EventArgs e
     )
@@ -719,7 +660,6 @@ namespace DrawingListUC
     #region ReadDrawingList Members
 
     // Read the BPL file  
-
     private void readGeneralSection(StreamReader SR)
     {
       string[] lines;
@@ -730,44 +670,37 @@ namespace DrawingListUC
         string linetext = SR.ReadLine();
 
         // Read version, 
-
         linetext = SR.ReadLine();
         lines = linetext.Split('*');
         version = lines[1];
 
         // Read product
-
         linetext = SR.ReadLine();
         lines = linetext.Split('*');
         _acadProduct = lines[1];
 
         // Read Script file
-
         linetext = SR.ReadLine();
 
         lines = linetext.Split('*');
         _scriptPath = lines[1];
 
         // Read timeout file
-
         linetext = SR.ReadLine();
         lines = linetext.Split('*');
         _timeoutSec = Convert.ToInt32(lines[1]);
 
         // Read ReStart file
-
         linetext = SR.ReadLine();
         lines = linetext.Split('*');
         _restartDWGCount = Convert.ToInt32(lines[1]);
 
         // Read start up file
-
         linetext = SR.ReadLine();
         lines = linetext.Split('*');
         _startUpScript = lines[1];
 
         // Read log file
-
         linetext = SR.ReadLine();
         lines = linetext.Split('*');
         _logFilePath = lines[1];
@@ -789,7 +722,6 @@ namespace DrawingListUC
             acadExePath = exePath;
 
             //read the sleep amount
-
             linetext = SR.ReadLine();
             lines = linetext.Split('*');
             _toolSpeed = Convert.ToInt32(lines[1]);
@@ -810,7 +742,6 @@ namespace DrawingListUC
         useCmdLine = isHeadlessAcad(acadExePath);
        
         // Read General_End
-
         linetext = SR.ReadLine();
       }
       catch { }
@@ -823,7 +754,6 @@ namespace DrawingListUC
     public void loadFromSCPfile()
     {
       // Clear the drawing list first...
-
       DwgList.Items.Clear();
 
       OpenFileDialog openDlg = new OpenFileDialog();
@@ -839,43 +769,35 @@ namespace DrawingListUC
         string[] lines;
 
         // General
-
         linetext = SR.ReadLine();
 
         // Complete
-
         linetext = SR.ReadLine();
 
         // Script file
-
         linetext = SR.ReadLine();
         lines = linetext.Split('=');
         _scriptPath = lines[1];
         ScriptPath.Text = _scriptPath;
 
         // Timeout
-
         linetext = SR.ReadLine();
         lines = linetext.Split('=');
         _timeoutSec = Convert.ToInt32(lines[1]);
 
         // Log...
-
         linetext = SR.ReadLine();
 
         // Log file name
-
         linetext = SR.ReadLine();
         lines = linetext.Split('=');
 
         _logFilePath = Path.GetDirectoryName(lines[1]);
 
         // Use UNC
-
         linetext = SR.ReadLine();
 
         // Read drawings...
-
         linetext = SR.ReadLine();
         while (linetext != null)
         {
@@ -900,15 +822,12 @@ namespace DrawingListUC
     }
 
     // New list...
-
     public void newDWGList()
     {
       // Clear the drawing list
-
       DwgList.Items.Clear();
 
       // New project
-
       _projectName = "";
       _modified = false;
       acadExePath = "";
@@ -917,7 +836,6 @@ namespace DrawingListUC
     }
 
     // Loads the passed drawing (bpl) file
-
     public void loadDWGList(string filename)
     {
       StreamReader SR = File.OpenText(filename);
@@ -934,11 +852,9 @@ namespace DrawingListUC
       string[] lines;
 
       // DWGList_Start
-
       linetext = SR.ReadLine();
 
       // First drawing
-
       linetext = SR.ReadLine();
       while (linetext != null)
       {
@@ -968,12 +884,9 @@ namespace DrawingListUC
     }
 
     // Ask the user for the bpl file to load
-
     public void loadDWGList()
     {
       // Clear the drawing list first...
-
-     
       OpenFileDialog openDlg = new OpenFileDialog();
       openDlg.Filter = "Drawing list (*.bpl) |*.bpl;";
       openDlg.Title = "Drawing list";
@@ -1005,7 +918,6 @@ namespace DrawingListUC
             StreamWriter sw = File.CreateText(strProjectName);
 
             // First write all the general infomation
-
             sw.WriteLine("[General_Start]");
             sw.WriteLine("Version*" + BPLVersion.ToString());
             sw.WriteLine("Product*" + "2011");
@@ -1052,7 +964,6 @@ namespace DrawingListUC
     }
 
     // Save the BPL list, called from save as save as
-
     public void saveDWGList(bool saveAs)
     {
       bool showDialog = false;
@@ -1088,7 +999,6 @@ namespace DrawingListUC
     #region RunBatchProcess Members
 
     // Run the batch process for checked files
-
     public void runCheckedFiles()
     {
       if (DwgList.Items.Count == 0)
@@ -1098,7 +1008,6 @@ namespace DrawingListUC
         return;
 
       // Remove the list
-
       Threadinput._FileInfolist.Clear();
 
       foreach (ListViewItem item in DwgList.Items)
@@ -1118,7 +1027,6 @@ namespace DrawingListUC
     }
 
     // Context menu option
-
     private void toolStripMenuItem2_Click(
       object sender, EventArgs e
     )
@@ -1127,7 +1035,6 @@ namespace DrawingListUC
     }
 
     // Run the selected DWG files
-
     public void runSelectedFiles()
     {
       if (DwgList.Items.Count == 0)
@@ -1144,7 +1051,6 @@ namespace DrawingListUC
       }
 
       // Remove the list
-
       Threadinput._FileInfolist.Clear();
 
       ListView.SelectedListViewItemCollection selItems =
@@ -1164,21 +1070,18 @@ namespace DrawingListUC
     }
 
     // Context menu option to run the selected
-
     private void toolStripMenuItem3_Click(object sender, EventArgs e)
     {
       runSelectedFiles();
     }
 
     // Run only failed dwg files
-
     public void runFailedFiles()
     {
       if (DwgList.Items.Count == 0)
         return;
 
       // Remove the list
-
       Threadinput._FileInfolist.Clear();
 
       bool run = false;
@@ -1228,7 +1131,6 @@ namespace DrawingListUC
     #region AutoCAD_related Members
 
     // Initialize UI to start the batch process
-
     void Initialize_start(int userOption)
     {
       BPbar.Visible = true;
@@ -1236,7 +1138,7 @@ namespace DrawingListUC
 
       UpdateHostApplicationUI(true);
 
-        //make sure start the selected exe first..
+      //make sure start the selected exe first..
       if (acadExePath.Length != 0)
           runSelectedExe = true;
 
@@ -1284,7 +1186,6 @@ namespace DrawingListUC
       }
 
       // Start the timer
-
       if (_timeoutWk == null && !useCmdLine)
       {
         _timeoutWk = new BackgroundWorker();
@@ -1325,7 +1226,6 @@ namespace DrawingListUC
       {
 
         // Set the user temp directory...
-
         _logFilePath = Path.GetTempPath();
       }
 
@@ -1342,7 +1242,6 @@ namespace DrawingListUC
 
     //function to check whether application 
     //is a AutoCAD or headless exe (at present accoreconsole.exe)
-
     static public bool isHeadlessAcad(string strExePath)
     {
         string strFileName = Path.GetFileName(strExePath);
@@ -1359,7 +1258,6 @@ namespace DrawingListUC
 
     // No try and catch, function which calls
     // this API should have try and catch...
-
     bool startAutoCAD()
     {
     //No need to start the AutoCAD through ActiveX
@@ -1374,7 +1272,6 @@ namespace DrawingListUC
      //now check the runSelectedExe. if false
      //run the selected AutoCAD exe so that
      //CreateInstance creates the correct exe.
-     
       if (runSelectedExe)
       {
         if (File.Exists(acadExePath))
@@ -1403,7 +1300,6 @@ namespace DrawingListUC
 
                 //300 seconds...for slower machines
                 ProcessObj.WaitForExit(300000);
-
                
                 Process[] procs = Process.GetProcessesByName("acad");
                 foreach (Process proc in procs)
@@ -1419,15 +1315,12 @@ namespace DrawingListUC
                         break;
                     }
                 }
-
-                
+               
             }
             catch { }
-            
         }
 
         runSelectedExe = false;
-          
       }
 
       string acad = "AutoCAD.Application";
@@ -1436,7 +1329,6 @@ namespace DrawingListUC
 
       //try 3 times to start the AutoCAD.
       // for slow machines....
-
       int nTryAcad = 3;
 
       while (nTryAcad > 0)
@@ -1481,9 +1373,8 @@ namespace DrawingListUC
     }
 
 
-   //This function finds the presence of Keywords and 
-   //nested scripts
-
+    //This function finds the presence of Keywords and 
+    //nested scripts
     int checkNestedScripts(string scriptFile)
     {
 
@@ -1519,14 +1410,12 @@ namespace DrawingListUC
 
    //This function replaces Keywords.
    //
-
     bool replaceKeyWords(string scriptFile, ref string newFile, string dwgName)
     {
         bool keyWordAdded = false;
 
         try
         {
-            
             newFile = Path.GetTempPath() + "KeywordTemp.scr";
 
             System.IO.StreamReader sr = new System.IO.StreamReader(scriptFile);
@@ -1534,7 +1423,6 @@ namespace DrawingListUC
             //str = str.ToLower();
             sr.Close();
             sr.Dispose();
-
 
             if (str.Contains(keyFolderName))
             {
@@ -1597,17 +1485,14 @@ namespace DrawingListUC
         return keyWordAdded;
     }
 
-
     // This function will create a new script file in
     // the user's temp Directory for nested scripts only 
-
     bool processNestedScripts(string scriptPath, string scriptFile, ref string newFile,
                         ref bool errorInScript)
     {
       bool useTemp = false;
       try
       {
-        
         string tempFile = Path.GetTempPath() + "NestedTemp1.scr";
         StreamReader sr = File.OpenText(scriptFile);
         StreamWriter sw = new StreamWriter(tempFile, false);
@@ -1654,7 +1539,6 @@ namespace DrawingListUC
                         //Find the nested file.
                         //if failed to find, then write the complete
                         //line to script. This will be error...
-
                         if (File.Exists(strNested))
                         {
                             StreamReader srNested = File.OpenText(strNested);
@@ -1694,7 +1578,6 @@ namespace DrawingListUC
         sw.Close();
         sw.Dispose();
 
-
         if (useTemp)
         {
             newFile = Path.GetTempPath() + "NestedTemp.scr";
@@ -1709,9 +1592,8 @@ namespace DrawingListUC
       return false;
     }
 
-     //Function to get active document. if no document present
-     //this function will add a empty document
-
+    //Function to get active document. if no document present
+    //this function will add a empty document
     object getActiveDocument(object acadObject)
     {
         object ActiveDocument = null;
@@ -1732,7 +1614,6 @@ namespace DrawingListUC
               );
 
             //if no document present
-
             if (count == 0)
             {
                 AcadDocuments.GetType().InvokeMember(
@@ -1761,14 +1642,12 @@ namespace DrawingListUC
 
 
     // Function to start the process..
-
     bool StartBatchProcess(bool restarted, int userOption)
     {
       if (!restarted)
         _runOption = userOption;
 
       // Check if script file present
-
       if (!File.Exists(ScriptPath.Text))
       {
         MessageBox.Show(
@@ -1792,8 +1671,7 @@ namespace DrawingListUC
         }
         catch { }
 
-        // Stsrt the AutoCAD
-
+        // Start the AutoCAD
         if (!startAutoCAD())
         {
             MessageBox.Show("Unable to start AutoCAD");
@@ -1802,7 +1680,6 @@ namespace DrawingListUC
             label_filename.Visible = false;
 
             // Enable the application start button
-
             UpdateHostApplicationUI(false);
 
             return false;
@@ -1819,9 +1696,8 @@ namespace DrawingListUC
         // Get active document...
         object ActiveDocument = null;
 
-       //No need to get the active document for
-       //commandline scripts
-
+        //No need to get the active document for
+        //commandline scripts
         if (!useCmdLine)
           ActiveDocument = getActiveDocument(acadObject);
 
@@ -1866,7 +1742,6 @@ namespace DrawingListUC
                 );
 
                 // Set recovery mode to 0
-
                 TwoVariable[0] = "LOGFILEMODE";
                 TwoVariable[1] = 1;
                 ActiveDocument.GetType().InvokeMember(
@@ -1876,7 +1751,6 @@ namespace DrawingListUC
                 );
 
                 // Set log file mode to 1
-
                 TwoVariable[0] = "RECOVERYMODE";
                 TwoVariable[1] = 0;
                 ActiveDocument.GetType().InvokeMember(
@@ -1887,7 +1761,6 @@ namespace DrawingListUC
             }
 
           // Create the thread syn event
-
           Threadinput.ThreadEvent = new AutoResetEvent(false);
           
           if (!useCmdLine)
@@ -1908,31 +1781,26 @@ namespace DrawingListUC
         }
 
         // Set the new acad object....
-
         Threadinput.acadObject = acadObject;
         Threadinput.nCreateImage = createImage;
         Threadinput.bDiagnosticMode = diagnosticMode;
 
         // Start the thread again...
-
         batchProcessThread.RunWorkerAsync(Threadinput);
 
         startBP = true;
       }
       catch
       {
-          
       }
 
       return startBP;
     }
 
     // Function to kill AutoCAD by process
-
     void KillAutoCAD()
     {
-      // Kill AutoCAD
-
+        // Kill AutoCAD
         if (useCmdLine)
         {
             //not possible...
@@ -1967,7 +1835,6 @@ namespace DrawingListUC
     }
 
     // Quits the ACAD on request
-
     void quitAcad(object acadObject, bool finalQuit)
     {
         if (!useCmdLine)
@@ -1975,11 +1842,9 @@ namespace DrawingListUC
           try
           {
             // First close all documents...
-            
             object[] TwoVariable = new object[2];
 
             // Get documents...
-
             object AcadDocuments =
               acadObject.GetType().InvokeMember(
                 "Documents",
@@ -1991,7 +1856,6 @@ namespace DrawingListUC
             {
               // Add a new document if it is
               //ending AutoCAD
-
               AcadDocuments.GetType().InvokeMember(
                 "Add",
                 BindingFlags.InvokeMethod,
@@ -2006,14 +1870,10 @@ namespace DrawingListUC
                 null, AcadDocuments, null
               );
 
-
-
             // Set the system variable back
-
             if (finalQuit)
             {
               // Reset the variables
-
               object ActiveDocument =
                 acadObject.GetType().InvokeMember(
                   "ActiveDocument",
@@ -2038,7 +1898,6 @@ namespace DrawingListUC
               );
 
               // LOGFILEMODE
-
               TwoVariable[0] = "LOGFILEMODE";
               TwoVariable[1] = _lf;
               ActiveDocument.GetType().InvokeMember(
@@ -2051,7 +1910,6 @@ namespace DrawingListUC
             while (count > 0)
             {
               // Reset the variables....
-
               object ActiveDocument =
                 acadObject.GetType().InvokeMember(
                   "ActiveDocument",
@@ -2061,7 +1919,6 @@ namespace DrawingListUC
 
               // Close the drawing file - no need to save
               // if required script file will have save...
-
               TwoVariable[0] = false;
               TwoVariable[1] = "";
               ActiveDocument.GetType().InvokeMember(
@@ -2150,7 +2007,6 @@ namespace DrawingListUC
               if (result == DialogResult.Yes)
               {
                   // Show the log file
-
                   if (bplog != null)
                   {
                       if (File.Exists(
@@ -2174,7 +2030,6 @@ namespace DrawingListUC
 
     // Helper function for creating the screen dump
     // this function makes AutoCAD topmost and gets its size
-
     void makeACADTopApplication(
       ref int left, ref int top, ref int width, ref int height
     )
@@ -2210,7 +2065,6 @@ namespace DrawingListUC
           object[] OnedataArry = new object[1];
 
           // Minimized
-
           if (string.Compare(strWindowState, "2", false) == 0)
           {
             OnedataArry[0] = 1;
@@ -2277,7 +2131,6 @@ namespace DrawingListUC
     }
 
     // Function to capture the AutoCAD screen image
-
     void captureScreen(
       string filename, string saveLocation,
       ref int left, ref int top, ref int width, ref int height
@@ -2311,7 +2164,6 @@ namespace DrawingListUC
     }
 
     // To check if AutoCAD is is busy or not...
-
     bool IsAcadQuiescent(int tries, int sleep)
     {
     if (useCmdLine)
@@ -2383,9 +2235,8 @@ namespace DrawingListUC
 
     #endregion
 
-      //Main function starts the provided Acad application passing drawing file 
-      //amd script as argumnets.
-
+    //Main function starts the provided Acad application passing drawing file 
+    //amd script as argumnets.
     bool RunScriptAsCommandlineArgument(string ApplicationPath, 
         string drawingFilePath, string scriptFilePath, 
         int maxWaitInMilliSeconds, ref string commandline)
@@ -2399,7 +2250,6 @@ namespace DrawingListUC
             string ApplicationArguments = "";
 
             //check if user selected application is AutoCAD or headleass AutoCAD
-
             bool bHeadlessAcad = isHeadlessAcad(ApplicationPath);
 
             if (bHeadlessAcad)
@@ -2419,7 +2269,6 @@ namespace DrawingListUC
             {
                 //add quit at the end of script file...
                 //as we need to quit the AutoCAD after processing the script
-
                 string newFile = Path.GetTempPath() + "commandline.scr";
 
                 System.IO.StreamReader sr = new System.IO.StreamReader(scriptFilePath);
@@ -2442,7 +2291,6 @@ namespace DrawingListUC
             }
 
             //start the process... No ActiveX API
-           
             Process ProcessObj = new Process();
             ProcessObj.StartInfo.FileName = ApplicationPath;
             ProcessObj.StartInfo.Arguments = ApplicationArguments;
@@ -2450,11 +2298,33 @@ namespace DrawingListUC
             ProcessObj.StartInfo.CreateNoWindow = true;
             ProcessObj.StartInfo.RedirectStandardOutput = true;
 
-            ProcessObj.Start();
+            // The standard output buffer becomes full and so the processes blocks and never ends. This code fixes that
+            // from: http://stackoverflow.com/questions/139593/processstartinfo-hanging-on-waitforexit-why
+			StringBuilder output = new StringBuilder();
+			using (AutoResetEvent outputWaitHandle = new AutoResetEvent(false))
+			{
+			    ProcessObj.OutputDataReceived += (sender, e) =>
+				{
+					if (e.Data == null)
+						outputWaitHandle.Set();
+					else
+						output.AppendLine(e.Data);
+				};
+                   ProcessObj.Start();
+				ProcessObj.BeginOutputReadLine();
 
-            //Wait till timeout...
+				if (ProcessObj.WaitForExit(maxWaitInMilliSeconds) && outputWaitHandle.WaitOne(maxWaitInMilliSeconds))
+				{
+					// success
+					output.Replace("\0", "");		// output has \0 characters between each normal character - replace them
+				}
+				else
+				{
+					// timeout
+				}
 
-            ProcessObj.WaitForExit(maxWaitInMilliSeconds);
+				ProcessObj.CancelOutputRead();
+			}
 
             //sleep for 2 second
             Thread.Sleep(2000); 
@@ -2462,9 +2332,7 @@ namespace DrawingListUC
             try
             {
                 //Read the commandline log for headless exe for logging purpose
-                Process[] processes =
-                   Process.GetProcessesByName(Path.GetFileNameWithoutExtension(ApplicationPath));
-
+                Process[] processes =Process.GetProcessesByName(Path.GetFileNameWithoutExtension(ApplicationPath));
                 if (processes.Length != 0)
                 {
                     //kill the applications
@@ -2474,7 +2342,6 @@ namespace DrawingListUC
                         if (proc.Id == ProcessObj.Id)
                         {
                             //failed...
-                           
                             bDone = false;
                             proc.Kill();
                         }
@@ -2483,7 +2350,7 @@ namespace DrawingListUC
                 else
                 {
                     if (bHeadlessAcad)
-                        commandline = ProcessObj.StandardOutput.ReadToEnd();
+							commandline = output.ToString();
                 }
             }
             catch
@@ -2504,7 +2371,6 @@ namespace DrawingListUC
 
     //Main function which goes through the file list and run the script on each file, 
     //called from batchProcessThread_DoWork
-
     void batchProcessThread_DoWork_CommandlineArgument(ref ThreadInput input,
                         ref BackgroundWorker worker)
     {
@@ -2515,15 +2381,12 @@ namespace DrawingListUC
             try
             {
                 // Report start of the process...
-
                 worker.ReportProgress(OPEN_NEW_DWG, info);
 
                 // Wait till timer is started
-
                 Threadinput.ThreadEvent.WaitOne();
 
                 // Check for cancelation..
-
                 if (batchProcessThread.CancellationPending)
                     break;
 
@@ -2539,7 +2402,6 @@ namespace DrawingListUC
                     if (!replaceKeyWords(strOldScr, ref scriptFile, info._fileName))
                     {
                         //No Keywords, so set back the file name
-
                         scriptFile = input.scriptFile;
                     }
                 }
@@ -2552,7 +2414,6 @@ namespace DrawingListUC
                         strOldScr = scriptFile;
 
                         //nested scripts may add key words
-
                         if (replaceKeyWords(strOldScr, ref scriptFile, info._fileName))
                         {
                             strOldScr = scriptFile;
@@ -2561,7 +2422,6 @@ namespace DrawingListUC
                 }
 
                 //run the script on AutoCAD/headless AutoCAD
-
                 if (RunScriptAsCommandlineArgument(input.commnadLineExePath, info._fileName, scriptFile,
                     input.timeout * 1000, ref info._logFile))
                     reportStatus = CLOSE_DWG_SUCCESS; //done
@@ -2588,7 +2448,6 @@ namespace DrawingListUC
 
     // Main function for batch process...
     // Opens each drawing file and runs the selected script...
-
     private void batchProcessThread_DoWork(
       object sender, DoWorkEventArgs e
     )
@@ -2597,7 +2456,6 @@ namespace DrawingListUC
       ThreadInput input = (ThreadInput)e.Argument;
 
       //for commandline argument call different function
-
       if (useCmdLine)
       {
           batchProcessThread_DoWork_CommandlineArgument(ref input, ref worker);
@@ -2613,7 +2471,6 @@ namespace DrawingListUC
       Object acadObject = input.acadObject;
 
       //Version 2.1
-
       int getActiveDoc = 5;
       object AcadDocuments = null;
       object ActiveDocument = null;
@@ -2645,7 +2502,6 @@ namespace DrawingListUC
               getActiveDoc--;
 
               //sleep for 1 second
-
               Thread.Sleep(1000); 
           }
       }
@@ -2654,7 +2510,6 @@ namespace DrawingListUC
       int reportStatus = 0;
 
       // Run the Threadinput.startUpScript...
-
       if (Threadinput.startUpScript.Length != 0)
       {
           CheckFileDiaSystemVariable(ActiveDocument);
@@ -2669,11 +2524,9 @@ namespace DrawingListUC
       }
 
       // 5 seconds so that AutoCAD is ready 
-
       IsAcadQuiescent(5, 1000);
 
       // Call Open
-
       int fileCount = 0;
       int DWGsprocessed = 0;
       bool returnResult = true;
@@ -2691,15 +2544,12 @@ namespace DrawingListUC
         try
         {
           // Report start of the process...
-
           worker.ReportProgress(OPEN_NEW_DWG, info);
 
           // Wait till timer is started
-
           Threadinput.ThreadEvent.WaitOne();
 
           // Check for cancelation..
-
           if (batchProcessThread.CancellationPending)
             break;
 
@@ -2711,12 +2561,10 @@ namespace DrawingListUC
             );
 
           //version 2.1
-
           Thread.Sleep(500 + _toolSpeed); //100
             
           //do not open the document, if user wants to run
           //the script on dummy/empty document
-
           if (!runWithoutOpen)
           {
               ThreeVariable[0] = info._fileName;//Name
@@ -2735,7 +2583,6 @@ namespace DrawingListUC
           }
 
            //add on 4-1-2011 - for ACA testing....
-
           Thread.Sleep(500 + _toolSpeed); //100
           //version 2.1
           // DiagnosticMode, now show a message box
@@ -2751,7 +2598,6 @@ namespace DrawingListUC
           }
 
           // Read the system variable LOGFILENAME
-
           OnedataArray[0] = "LOGFILENAME";
           info._logFile =
             (string)ActiveDocument.GetType().InvokeMember(
@@ -2761,7 +2607,6 @@ namespace DrawingListUC
           );
 
           // Sleep for 0.5 seconds...
-
           Thread.Sleep(500 + _toolSpeed);
           CheckFileDiaSystemVariable(ActiveDocument);
 
@@ -2776,7 +2621,6 @@ namespace DrawingListUC
               if (!replaceKeyWords(strOldScr, ref scriptFile, info._fileName))
               {
                   //No Keywords, so set back the file name
-
                   scriptFile = input.scriptFile;
               }
           }
@@ -2789,7 +2633,6 @@ namespace DrawingListUC
                   strOldScr = scriptFile;
 
                   //nested scripts may add key words
-
                   if (replaceKeyWords(strOldScr, ref scriptFile, info._fileName))
                   {
                       strOldScr = scriptFile;
@@ -2797,15 +2640,14 @@ namespace DrawingListUC
               }
           }
 
-          OnedataArray[0] =
-            "_.SCRIPT " + scriptFile /*input.scriptFile*/ + "\n";
+          OnedataArray[0] ="_.SCRIPT " + scriptFile /*input.scriptFile*/ + "\n";
           ActiveDocument.GetType().InvokeMember(
             "SendCommand",
             BindingFlags.InvokeMethod,
             null, ActiveDocument, OnedataArray
           );
 
-          IsAcadQuiescent(-1, 1000); //
+          IsAcadQuiescent(-1, 1000);
 
           if (Threadinput.nCreateImage == 0)
           {
@@ -2818,7 +2660,6 @@ namespace DrawingListUC
 
           // DiagnosticMode, now show a message box
           // may be better UI later....
-
           if (Threadinput.bDiagnosticMode)
           {
             // Show the message box and hold the screen...
@@ -2841,7 +2682,6 @@ namespace DrawingListUC
                 null, ActiveDocument, TwoVariable
               );
           }
-          //}
 
           Thread.Sleep(500);
 
@@ -2863,7 +2703,6 @@ namespace DrawingListUC
           // Either fail to open drawing
           // AutoCAD killed...
           // AutoCAD crashed...
-
           reportStatus = CLOSE_DWG_FAILED; //failed
           isAcadKilled = true;
         }
@@ -2873,7 +2712,6 @@ namespace DrawingListUC
         Threadinput.ThreadEvent.WaitOne();
 
         // AutoCAD is either killed, crashed OR busy....
-
         if (isAcadKilled)
         {
           Process[] procs = Process.GetProcessesByName("acad");
@@ -2884,7 +2722,6 @@ namespace DrawingListUC
             {
               // AutoCAD is showing some dialog
               // or is not responding...
-
               isAcadKilled = false;
               returnResult = true;
               break;
@@ -2892,17 +2729,14 @@ namespace DrawingListUC
           }
         }
         // If AutoCAD is killed, then break
-
         if (isAcadKilled)
           break;
 
-        // Check for cancelation..
-
+        // Check for cancellation..
         if (batchProcessThread.CancellationPending)
           break;
 
         // DWG 
-
         if (DWGsprocessed == Threadinput._restartDWGCount)
         {
           isAcadKilled = false;
@@ -2912,7 +2746,6 @@ namespace DrawingListUC
       }
 
       // Check AutoCAD...
-
       if (!isAcadKilled)
       {
         e.Result = returnResult;
@@ -2926,7 +2759,6 @@ namespace DrawingListUC
     }
 
     //to check the file dia system variable
-
     void CheckFileDiaSystemVariable(object ActiveDocument)
     {
         try
@@ -2943,8 +2775,7 @@ namespace DrawingListUC
 
             if (fd == 1)
             {
-                //rest the variable
-
+                //reset the variable
                 _fd = fd;
 
                 object[] TwoVariable = new object[2];
@@ -2961,7 +2792,6 @@ namespace DrawingListUC
     }
     // Batch process end call back...
     // Called in main thread
-
     void batchProcessThread_RunWorkerCompleted(
       object sender, RunWorkerCompletedEventArgs e
     )
@@ -2999,11 +2829,9 @@ namespace DrawingListUC
           // AutoCAD is no more... but we need to set
           // a few settings like filedia, etc.
           // So restart AutoCAD...
-
           startAutoCAD();
 
           // Set them and quit AutoCAD....
-
           quitAcad(acadObject, finalQuit);
         }
       }
@@ -3014,11 +2842,9 @@ namespace DrawingListUC
         label_filename.Visible = false;
 
         //Enable the application start button
-
         UpdateHostApplicationUI(false);
 
         //if user wants the exit of ScriptPro, then perform
-
         if (silentExit)
         {
             //exit the application
@@ -3046,7 +2872,6 @@ namespace DrawingListUC
           label_filename.Visible = false;
 
           // Enable the application start button
-
           UpdateHostApplicationUI(false);
         }
 
@@ -3064,7 +2889,6 @@ namespace DrawingListUC
       try
       {
         // Start of a new drawing
-
         if (e.ProgressPercentage == OPEN_NEW_DWG)
         {
           // Start the timer
@@ -3099,7 +2923,6 @@ namespace DrawingListUC
             _timeout.Stop();
 
           // Update the process bar
-
           try
           {
             fileCount = fileCount + 1;
@@ -3113,19 +2936,16 @@ namespace DrawingListUC
           catch { }
 
           // Get the file info
-
           FileInfo info = (FileInfo)e.UserState;
 
           // Get the log file details
 
           // Find the file
-
           ListViewItem item = DwgList.Items[info._index];
 
           item.BackColor = itemColor;
 
           // Get the file name
-
           TagData data = (TagData)item.Tag;
 
           if (e.ProgressPercentage == CLOSE_DWG_SUCCESS)
@@ -3191,7 +3011,6 @@ namespace DrawingListUC
                 }
 
                 // Log the details
-
                 bplog.Log(
                   data.DwgName, acadLog, _projectName, data.status
                 );
@@ -3250,7 +3069,6 @@ namespace DrawingListUC
     }
 
     // Timeout thread main function
-
     void _timeoutWk_DoWork(object sender, DoWorkEventArgs e)
     {
       BackgroundWorker timer = sender as BackgroundWorker;
@@ -3268,7 +3086,6 @@ namespace DrawingListUC
     // Function which is called when time out occurs
     // This function is kill from Main thread, so you
     // kill AutoCAD here
-
     void _timeoutWk_ProgressChanged(
       object sender, ProgressChangedEventArgs e
     )
@@ -3276,7 +3093,6 @@ namespace DrawingListUC
       if (_killAcad)
       {
         // Take the screenshot if required
-
         try
         {
           if (!_imageCreated && createImage == 1)
@@ -3299,7 +3115,6 @@ namespace DrawingListUC
     // Function which updates the host application.
     // late binding is used... just in case we use any other 
     // host application
-
     void UpdateHostApplicationUI(bool processStarted)
     {
       try
@@ -3374,9 +3189,7 @@ namespace DrawingListUC
         DwgList.Columns[0].Width = (int)(width * 0.25);
 
         // Path
-
         DwgList.Columns[1].Width = (int)(width * 0.65);
-
     }
 
     public void populateDWGlist(List<string> list)
@@ -3387,7 +3200,6 @@ namespace DrawingListUC
             list.Add(data.DwgName);
         }
     }
-
   
   }
 
